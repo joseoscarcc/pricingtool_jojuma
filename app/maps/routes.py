@@ -1,15 +1,10 @@
-from flask import render_template, jsonify, flash,request, redirect,url_for, session, current_app
+from flask import render_template, jsonify,request
 from app.maps import bp
 from app.extensions import db
 from config import Config
 from sqlalchemy import func, cast, Integer
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-import plotly.express as px
-from app.models.precios import precios_site,competencia,round_float,get_site_data,get_unique_municipios,get_site_data_by_municipio
+from app.models.precios import precios_site,competencia,get_unique_municipios,get_site_data_by_municipio
 from app.models.auth import login_required
-import os
 
 
 @bp.route('/', methods=['GET', 'POST'])

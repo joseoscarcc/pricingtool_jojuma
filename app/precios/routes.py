@@ -4,7 +4,6 @@ from app.extensions import db
 from sqlalchemy import func
 import pandas as pd
 import numpy as np
-from dash import html
 from app.models.precios import precios_site,competencia,round_float,get_site_data
 from app.models.auth import login_required
 import json
