@@ -4,5 +4,5 @@ sqlalchemy
 pandas
 numpy
 plotly
-flask_sqlalchemySS
+flask_sqlalchemy
 
