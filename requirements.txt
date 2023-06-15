@@ -5,4 +5,4 @@ pandas
 numpy
 plotly
 flask_sqlalchemy
-
+psycopg2
