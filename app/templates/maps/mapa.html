@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+<div class="container">
+  <div class="row">
+      <div class="col">
+          <div class="card card-body">
+              <form id="my-form" class="form-inline" method="POST" action="{{ url_for('maps.index') }}">
+                  <div class="form-group">
+                      <select id="municipio-select" class="form-control" name="municipio">
+                          <option value="">Seleccione municipio</option>
+                          <!-- Add other options dynamically -->
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="product" id="regular" value="regular" checked>
+                          <label class="form-check-label" for="regular">Regular</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="product" id="premium" value="premium">
+                          <label class="form-check-label" for="premium">Premium</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="product" id="diesel" value="diesel">
+                          <label class="form-check-label" for="diesel">Diesel</label>
+                      </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Actualizar</button>
+              </form>
+          </div>
+      </div>
+  </div>
+  <div class="row">
+      <div class="col">
+          <div id="mapa"></div>
+      </div>
+  </div>
+</div>
+ 
+{% block script %}
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    var mapBox = "{{ map_box | safe }}";
+    var x = JSON.parse('{{ x | safe }}');
+    var y = JSON.parse('{{ y | safe }}');
+    var text = {{ texto | safe }};
+    var citylat = {{ citylat | safe }};
+    var citylon = {{ citylon | safe }};
+
+
+    fetch('municipios/')
+        .then(response => response.json())
+        .then(data => {
+            const selectElement = document.getElementById('municipio-select');
+
+            // Iterate over the municipios and create option elements
+            data.municipios.forEach(municipio => {
+                const optionElement = document.createElement('option');
+                optionElement.value = municipio;
+                optionElement.text = municipio;
+                selectElement.appendChild(optionElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle the error or display an error message to the user
+        });
+
+    var data = [{
+        type: 'scattermapbox',
+        mode: 'markers',
+        lon: x,
+        lat: y,
+        text: text
+    }];
+
+    var layout = {
+        title: 'Precios de estaciones de servicio',
+        font: {
+            color: 'white'
+        },
+        dragmode: 'zoom',
+        mapbox: {
+            center: {
+                lat: citylat,
+                lon: citylon
+            },
+            domain: {
+                x: [0, 1],
+                y: [0, 1]
+            },
+            style: 'dark',
+            zoom: 10
+        },
+        margin: {
+            r: 20,
+            t: 40,
+            b: 20,
+            l: 20,
+            pad: 0
+        },
+        paper_bgcolor: '#191A1A',
+        plot_bgcolor: '#191A1A',
+        showlegend: false        
+    };
+
+    Plotly.setPlotConfig({
+        mapboxAccessToken: mapBox
+    });
+
+    Plotly.newPlot('mapa', data, layout);
+});
+  
+</script>
+{% endblock %}
+{% endblock %}

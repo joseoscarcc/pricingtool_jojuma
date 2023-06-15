@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  
+  <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+    <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample10">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('configuracion.sitios') }}">Ver estaciones</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('configuracion.nuevositio') }}">Agregar estacion</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('configuracion.register') }}">Actualizar estacion</a>
+          </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('configuracion.index') }}">Regresar configuracion</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <h2>Estaciones propias</h2>
+  <div class="row">
+    <div class="col-sm-10 mx-auto">
+      <table class="table table-striped">
+        <thead class="thead-dark">
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">CRE ID</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Marca</th>
+            <th scope="col">Municipio</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Competencia</th>
+            <th scope="col">Borrar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <th scope="row">{{entry.place_id}}</th>
+            <td>{{ entry.cre_id }}</td>
+            <td>{{ entry.nombre }}</td>
+            <td>{{ entry.marca }}</td>
+            <td>{{ entry.municipio }}</td>
+            <td>{{ entry.estado }}</td>
+            <td>
+                <a href="{{ url_for('configuracion.vercompetencia', entry_id=entry.place_id) }}" class="btn btn-outline-info btn-sm">Ver</a>
+            </td>
+            <td>
+              <a href="{{ url_for('configuracion.deletesitios', place_id=entry.place_id) }}" class="btn btn-outline-danger btn-sm">Borrar</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

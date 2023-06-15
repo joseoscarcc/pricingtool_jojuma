@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="col">
+  <div class="row">
+    <div class="col">
+      <div class="card card-body">
+        <select id="cre-id-select" class="form-control">
+          <option value="">Seleccione CRE ID</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <div class="card card-body">
+        <form class="form-inline">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="product" id="regular" value="regular" checked>
+            <label class="form-check-label" for="regular">Regular</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="product" id="premium" value="premium">
+            <label class="form-check-label" for="premium">Premium</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="product" id="diesel" value="diesel">
+            <label class="form-check-label" for="diesel">Diesel</label>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <div class="card card-style mb-2">
+        <div class="card-body">
+          <div class="chart-container" style="position: relative; height: 450px;">
+            <canvas id="dashboard_precios"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+</div>
+
+{% block javascript %}
+
+<script>
+var siteList = JSON.parse('{{ placeids | safe }}');
+
+// Function to render the chart
+function renderChart(data) {
+  // Access the desired data and use it for your chart
+  var chartData = data.data;
+  var dates = Object.keys(chartData);
+  var labels = Object.keys(chartData[dates[0]]);
+  // ... rest of the code for processing and rendering the chart
+  // Extract the prices for each date and label
+  var datasets = labels.map(function(label) {
+    return {
+      label: label,
+      data: dates.map(function(date) {
+        return data.data[date][label];
+      })
+    };
+  });
+
+  // Create the chart using Chart.js
+  var ctx = document.getElementById('dashboard_precios').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true, // Enable responsiveness
+      maintainAspectRatio: false, // Allow the chart to adjust its size
+    }
+  });
+}
+
+// Populate the dropdown menu with cre_id values
+var creIdSelect = document.getElementById('cre-id-select');
+siteList.forEach(function(item) {
+  var option = document.createElement('option');
+  option.value = item.cre_id;
+  option.text = item.cre_id;
+  creIdSelect.appendChild(option);
+});
+
+// Add event listener to the dropdown menu
+creIdSelect.addEventListener('change', function() {
+  var selectedCreId = creIdSelect.value;
+  var selectedProduct = document.querySelector('input[name="product"]:checked').value;
+  var selectedPlaceId = '';
+
+  // Find the corresponding place_id for the selected cre_id
+  for (var i = 0; i < siteList.length; i++) {
+    if (siteList[i].cre_id === selectedCreId) {
+      selectedPlaceId = siteList[i].place_id;
+      break;
+    }
+  }
+
+  // Set default values if nothing is selected
+  if (!selectedPlaceId) {
+    selectedPlaceId = '22534';
+  }
+  if (!selectedProduct) {
+    selectedProduct = 'regular';
+  }
+
+  // Fetch data based on selected place_id and product
+  fetch('data/' + selectedPlaceId + '/' + selectedProduct)
+    .then(response => response.json())
+    .then(data => {
+      // Process the data returned from the server
+      console.log(data);
+
+      // Render the chart with the new data
+      renderChart(data);
+    });
+});
+
+// Add event listener to the radio buttons
+var radioButtons = document.querySelectorAll('input[name="product"]');
+radioButtons.forEach(function(radioButton) {
+  radioButton.addEventListener('change', function() {
+    var selectedCreId = creIdSelect.value;
+    var selectedProduct = document.querySelector('input[name="product"]:checked').value;
+    var selectedPlaceId = '';
+
+    // Find the corresponding place_id for the selected cre_id
+    for (var i = 0; i < siteList.length; i++) {
+      if (siteList[i].cre_id === selectedCreId) {
+        selectedPlaceId = siteList[i].place_id;
+        break;
+      }
+    }
+
+    // Set default values if nothing is selected
+    if (!selectedPlaceId) {
+      selectedPlaceId = '22534';
+    }
+    if (!selectedProduct) {
+      selectedProduct = 'regular';
+    }
+
+    // Fetch data based on selected place_id and product
+    fetch('data/' + selectedPlaceId + '/' + selectedProduct)
+      .then(response => response.json())
+      .then(data => {
+        // Process the data returned from the server
+        console.log(data);
+
+        // Render the chart with the new data
+        renderChart(data);
+      });
+  });
+});
+
+// Fetch initial data based on default values
+fetch('data/')
+  .then(response => response.json())
+  .then(data => {
+    // Process the data returned from the server
+    console.log(data);
+
+    // Render the chart with the initial data
+    renderChart(data);
+  });
+</script>
+{% endblock %}
+{% endblock %}     
+
+        
