@@ -1,70 +1,35 @@
-from flask import render_template, jsonify, flash
-from app.graph import bp
-from app.extensions import db
-from app.models.auth import login_required
-from app.models.precios import competencia, precios_site, sites, get_site_data
-from sqlalchemy import cast, Integer
-import pandas as pd
-import plotly
-import plotly.express as px
+from flask import render_template, jsonify, request
 import json
-import numpy as np
-from datetime import datetime, timedelta
+from app.graph import bp
+from app.models.auth import login_required
+from app.models.graph import data_for_graph
+from app.models.precios import get_site_data, get_place_id_by_cre_id
 
 
-@bp.route('/')
+@bp.route('/', methods=['GET', 'POST'])
 @login_required
-def index():
-    title="Dasboard Precios"
-    placeID = get_site_data()
-    placeID_json = json.dumps(placeID)
-    return render_template('graph/graph.html',title=title,placeids=placeID_json)
+def index(cre_id=None, product_value=None):
+    title="Grafica de precios"
+
+    if request.method == 'POST':
+        cre_id = request.form.get('cre_id')
+        product_value = request.form.get('product')
+        site_data = get_site_data()
+        place_id_value = next((site['place_id'] for site in site_data if site['cre_id'] == cre_id), None)
+    if cre_id is None:
+        place_id_value = 22534
+    if product_value is None:
+        product_value = "regular"
+    
+    brand_prices = data_for_graph(place_id_value, product_value)
+  
+    return render_template('graph/graph.html',title=title,
+                            brand_prices = json.dumps(brand_prices))
 
 @bp.route('/data/', methods=['GET'])
-@bp.route('/data/<int:place_id_value>/<string:product_value>', methods=['GET'])
-@login_required
-def data(place_id_value=None, product_value=None):
-    # if cre_id_value is None:
-    #     cre_id_value = 'PL/20038/EXP/ES/2017'
-    if place_id_value is None:
-         place_id_value = 22534
-    if product_value is None:
-        product_value = 'regular'
-    
-    site = sites.query.filter_by(place_id=place_id_value).first()
-    if site:
-        place_id_value = site.place_id
-        # Use the place_id as needed
-    else:
-        # Handle the case when cre_id is not found
-        flash('El "CRE ID" no fue encontrado')
+def data():
+    site_data = get_site_data()
 
-    date_threshold = datetime.now() - timedelta(days=30)
+    totalgas_cre_ids = [site['cre_id'] for site in site_data if site['marca'] == 'TOTALGAS']
 
-    results = (
-        precios_site.query.join(competencia, cast(precios_site.place_id, Integer) == competencia.place_id)
-        .filter(competencia.compite_a == place_id_value)
-        .filter(precios_site.product == product_value)
-        .filter(precios_site.date >= date_threshold)
-        .with_entities(
-            precios_site.date,
-            competencia.marca,
-            precios_site.prices
-        )
-        .all()
-    )
-
-    data = {}
-    for row in results:
-        date = row.date.strftime('%Y-%m-%d')
-        marca = row.marca
-        price = row.prices
-
-        # Create the nested dictionaries if they don't exist
-        if date not in data:
-            data[date] = {}
-
-        if marca not in data[date]:
-            data[date][marca] = price
-        
-    return jsonify({'data': data})
+    return jsonify({'cre_id': totalgas_cre_ids})
