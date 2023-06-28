@@ -74,3 +74,8 @@ def get_site_data_by_municipio(municipio):
     result = sites.query.with_entities(sites.place_id).filter_by(municipio=municipio).all()
     place_ids = [row[0] for row in result]
     return place_ids
+    
+def get_place_id_by_cre_id(target_cre_id):
+    site = sites.query.filter_by(cre_id=target_cre_id).first()
+
+    return site.place_id
