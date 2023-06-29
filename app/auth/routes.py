@@ -3,6 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.auth import bp
 from app.extensions import db
 from app.models.auth import login_required, users
+import os
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -16,6 +17,8 @@ def login():
             error = 'Incorrect username.'
         elif not check_password_hash(user.password, password):
             error = 'Incorrect password.'
+        elif user.project not in [os.environ.get('type_1'), os.environ.get('type_2')]:
+            error = 'Access denied. Invalid project.'
 
         if error is None:
             session.clear()
@@ -24,7 +27,7 @@ def login():
 
         flash(error)
 
-    return render_template('auth/login.html',title="Ingresa")
+    return render_template('auth/login.html', title="Ingresa")
 
 @bp.before_app_request
 def load_logged_in_user():
