@@ -81,11 +81,11 @@ def get_place_id_by_cre_id(target_cre_id):
 
     return site.place_id
 
-def get_data_table():
+def get_data_table(target_cre_id):
     latest_date = db.session.query(func.max(precios_site.date)).scalar()
-    hoy = get_precios_competencia(latest_date)
+    hoy = get_competencia_by_place_id(target_cre_id, latest_date)
     dia_anterior = db.session.query(func.max(precios_site.date) - 1).scalar()
-    ayer = get_precios_competencia(dia_anterior)
+    ayer = get_competencia_by_place_id(target_cre_id, dia_anterior)
     regular_prices = 1
     premium_prices = 1
     diesel_prices = 1
@@ -266,12 +266,19 @@ def get_data_table():
 
     return table
 
-def get_precios_competencia(fecha):
-    
-    given_date = fecha
-    coalesce_value = '-'
-    round_digits = 2    
+def get_place_id_by_cre_id_01(target_cre_id):
+    site = competencia.query.filter(competencia.cre_id.like(f'PL/{target_cre_id}/%')).first()
 
+    if site is None:
+        return None
+
+    return site.place_id
+
+def get_competencia_by_place_id(target_cre_id, fecha):
+    place_id = get_place_id_by_cre_id_01(target_cre_id)
+    given_date = fecha
+
+    
     result = db.session.query(
         competencia.id_micromercado,
         competencia.id_estacion,
@@ -296,7 +303,13 @@ def get_precios_competencia(fecha):
             func.cast(competencia.place_id, db.Text) == precios_site.place_id,
             precios_site.date == given_date
         )
-    ).group_by(
+    )
+
+    # Check if place_id is not None and add the filter condition
+    if place_id is not None:
+        result = result.filter(competencia.compite_a == place_id)
+
+    result = result.group_by(
         competencia.id_micromercado,
         competencia.id_estacion,
         competencia.cre_id,
