@@ -1,4 +1,5 @@
 from app.extensions import db
+from sqlalchemy import and_, case, func
 
 class precios_site(db.Model):
     place_id = db.Column(db.Text, primary_key=True)
