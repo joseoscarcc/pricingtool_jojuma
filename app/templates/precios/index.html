@@ -13,179 +13,22 @@
 
     <div class="text-left">
         <button id="csv-button" class="btn btn-primary">Descarga CSV</button>
+        <button id="send-button" class="btn btn-primary">Enviar Selección</button>  <!-- New button to send selected checkboxes -->
     </div>
 
-    <table class="table">
-        <thead class="thead-green"id="myTable">
-            <tr>
-                <th  data-colname="cre_id" data-order="desc">CRE ID</th>
-                <th  data-colname="marca" data-order="desc">Marca</th>
-                <th  data-colname="regular" data-order="desc">Regular</th>
-                <th  data-colname="premium" data-order="desc">Premium</th>
-                <th  data-colname="diesel" data-order="desc">Diesel</th>
-            </tr>
-        </thead>
-        <tbody id="miTabla">
-                
-        </tbody>
-    </table>
-    
+    <h2>Tabla de Precios</h2>
+    <div class="row">
+      <div class="col-sm-10 mx-auto">
+        {{ latest|safe }}
+      </div>
+    </div>
+
 </div>
 
 
-    <script>
-        var myArray = JSON.parse('{{ data_json | safe }}');
-        var siteList = JSON.parse('{{ placeids | safe }}');
-
-        $(document).ready(function() {
-            buildTable(myArray);
-            var NewArray = buildArray(myArray)
-
-
-            $('#search-input').on('keyup', function() {
-                var value = $(this).val();
-                var data = searchTable(value, myArray, siteList);
-                buildTable(data);
-            });
-
-            $('#csv-button').on('click', function() {
-                downloadCSV(NewArray);
-            });
-        });
-
-        function searchTable(value, data, lista) {
-            var filteredIds = [];
-            for (var i = 0; i < lista.length; i++) {
-                var cre_id = lista[i].cre_id.toString();
-
-                if (cre_id.includes(value)) {
-                    
-                    filteredIds.push(lista[i].place_id);
-                }
-            }
-            var filteredData = data.filter(function(row) {
-                return filteredIds.includes(row.compite_a);
-            });
-
-            return filteredData;
-        }
-
-        function buildTable(data){
-        var table = document.getElementById('miTabla')
-        table.innerHTML = ''
-        data.sort(function(a, b) {
-        if (a.id_micromercado !== b.id_micromercado) {
-            return a.id_micromercado - b.id_micromercado;
-        } else {
-            return a.id_estacion - b.id_estacion;
-        }
-        });
-        for (var i = 0; i < data.length; i++){
-            var colcre_id = `cre_id-${i}`
-            var colmarca = `marca-${i}`
-            var colregular = `regular-${i}`
-            var colpremium = `premium-${i}`
-            var coldiesel = `diesel-${i}`
-            
-            if(data[i].id_estacion == 1){
-                var pricing = 1
-                var pr = data[i].regular
-                var pp = data[i].premium
-                var pd = data[i].diesel
-            }
-            var row = `<tr>
-                            <td>${data[i].cre_id}</td>
-                            <td>${data[i].marca}</td>
-                            <td>${data[i].regular}</td>
-                            <td>${data[i].premium}</td>
-                            <td>${data[i].diesel}</td>
-                        </tr>`
-            var rr = data[i].regular - pr
-            var rp = data[i].premium - pp
-            var rd = data[i].diesel - pd
-            var regular = isNaN(rr) ? "-" : rr.toFixed(2)
-            var premium = isNaN(rp) ? "-" : rp.toFixed(2)
-            var diesel = isNaN(rd) ? "-" : rd.toFixed(2)
-            var row1 = `<tr>
-                            <td>${' '}</td>
-                            <td>${' '}</td>
-                            <td>${regular}</td>
-                            <td>${premium}</td>
-                            <td>${diesel}</td>
-                        </tr>`
-
-
-            table.innerHTML += row + row1
-        }
-        }
-
-        function buildArray(data) {
-            var newArray = [];
-
-            data.sort(function(a, b) {
-                if (a.id_micromercado !== b.id_micromercado) {
-                return a.id_micromercado - b.id_micromercado;
-                } else {
-                return a.id_estacion - b.id_estacion;
-                }
-            });
-
-            for (var i = 0; i < data.length; i++) {
-                var newRow = {};
-
-                newRow.cre_id = data[i].cre_id;
-                newRow.marca = data[i].marca;
-                newRow.regular = data[i].regular;
-                newRow.premium = data[i].premium;
-                newRow.diesel = data[i].diesel;
-
-                if (data[i].id_estacion == 1) {
-                var pr = data[i].regular;
-                var pp = data[i].premium;
-                var pd = data[i].diesel;
-                }
-
-                var rr = data[i].regular - pr;
-                var rp = data[i].premium - pp;
-                var rd = data[i].diesel - pd;
-                var regular = isNaN(rr) ? "-" : rr.toFixed(2);
-                var premium = isNaN(rp) ? "-" : rp.toFixed(2);
-                var diesel = isNaN(rd) ? "-" : rd.toFixed(2);
-
-                var newExtraRow = {};
-
-                newExtraRow.cre_id = ' ';
-                newExtraRow.marca = ' ';
-                newExtraRow.regular = regular;
-                newExtraRow.premium = premium;
-                newExtraRow.diesel = diesel;
-
-                newArray.push(newRow);
-                newArray.push(newExtraRow);
-            }
-
-            return newArray;
-            }
-
-            function downloadCSV(data) {
-                var csvContent = "data:text/csv;charset=utf-8,";
-
-                var headerRow = Object.keys(data[0]).join(",");
-                csvContent += headerRow + "\n";
-
-                data.forEach(function(row) {
-                    var rowData = Object.values(row).map(function(value) {
-                    return '"' + value + '"';
-                    });
-                    csvContent += rowData.join(",") + "\n";
-                });
-
-                var encodedURI = encodeURI(csvContent);
-                var link = document.createElement("a");
-                link.setAttribute("href", encodedURI);
-                link.setAttribute("download", "data.csv");
-                document.body.appendChild(link);
-                link.click();
-                }
-        </script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.16.0/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 {% endblock %}
