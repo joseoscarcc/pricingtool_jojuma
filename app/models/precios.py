@@ -79,3 +79,231 @@ def get_place_id_by_cre_id(target_cre_id):
     site = sites.query.filter_by(cre_id=target_cre_id).first()
 
     return site.place_id
+
+def get_data_table():
+    latest_date = db.session.query(func.max(precios_site.date)).scalar()
+    hoy = get_precios_competencia(latest_date)
+    dia_anterior = db.session.query(func.max(precios_site.date) - 1).scalar()
+    ayer = get_precios_competencia(dia_anterior)
+    regular_prices = 1
+    premium_prices = 1
+    diesel_prices = 1
+    row_i = 0
+    row_k = 0
+    row_j = 0
+
+    table = "<table id=\"table\" class=\"table table-striped table-sm table-responsive\" >"
+    table += "<thead class=\"thead-dark\">"
+    table += "<tr><th>Permiso CRE</th><th>Marca</th><th>Regular</th><th>-d</th><th>Premium</th><th>-d</th><th>Diesel</th><th>-d</th><th>Cambio</th></tr></thead>"
+    table += "<tbody>"
+    for data in hoy:
+            if data.id_estacion == 1:
+                
+                cre_id = data.cre_id
+                marca = data.marca
+                regular_prices = data.regular_prices
+                premium_prices = data.premium_prices
+                diesel_prices = data.diesel_prices
+
+                desired_row = next((row for row in ayer if row.id_micromercado == data.id_micromercado and row.id_estacion == data.id_estacion and row.cre_id == data.cre_id and row.place_id == data.place_id), None)
+
+                regular_prices_d_1 = desired_row.regular_prices
+                premium_prices_d_1 = desired_row.premium_prices
+                diesel_prices_d_1 = desired_row.diesel_prices
+
+                try:
+                    dif_d_r = round(float(regular_prices) - float(regular_prices_d_1),2)
+                    if dif_d_r >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_r <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_r=''
+                        c=''
+                        b=''
+                except:
+                    dif_d_r = "-"
+                try:
+                    dif_d_p = round(float(premium_prices) - float(premium_prices_d_1),2)
+                    if dif_d_p >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_p <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_p=""
+                        c=''
+                        b=''
+                except:
+                    dif_d_p = "-"
+                try:
+                    dif_d_d = round(float(diesel_prices) - float(diesel_prices_d_1),2)
+                    if dif_d_d >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_d <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_d=""
+                        c=''
+                        b=''
+                except:
+                    dif_d_d = "-"
+
+                table += f"<tr class=\"table-primary\"><td>{cre_id}</td><td>{marca}</td><td>{regular_prices}</td><td class=\"{c}\">{b}{dif_d_r}</td><td>{premium_prices}</td><td class=\"{c}\">{b}{dif_d_p}</td><td>{diesel_prices}</td><td class=\"{c}\">{b}{dif_d_d}</td>"
+                table += f"<td><a href=\"{{ url_for('precios.cambioprecio', entry_id={data.place_id}) }}\" class=\"btn btn-outline-danger btn-sm\">Cambio</a></td></tr>"
+            else:
+                cre_id = data.cre_id
+                marca = data.marca
+                regular_prices_01 = data.regular_prices
+                premium_prices_01 = data.premium_prices
+                diesel_prices_01 = data.diesel_prices
+
+                desired_row = next((row for row in ayer if row.id_micromercado == data.id_micromercado and row.id_estacion == data.id_estacion and row.cre_id == data.cre_id and row.place_id == data.place_id), None)
+
+                regular_prices_d_1 = desired_row.regular_prices
+                premium_prices_d_1 = desired_row.premium_prices
+                diesel_prices_d_1 = desired_row.diesel_prices
+
+                try:
+                    dif_d_r = round(float(regular_prices_01) - float(regular_prices_d_1),2)
+                    if dif_d_r >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_r <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_r=""
+                        c=''
+                        b=''
+                except:
+                    dif_d_r = "-"
+                try:
+                    dif_d_p = round(float(premium_prices_01) - float(premium_prices_d_1),2)
+                    if dif_d_p >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_p <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_p=""
+                        c=''
+                        b=''
+                except:
+                    dif_d_p = "-"
+                try:
+                    dif_d_d = round(float(diesel_prices_01) - float(diesel_prices_d_1),2)
+                    if dif_d_d >0:
+                        c = 'text-green'
+                        b = '+'
+                    elif dif_d_d <0:
+                        c = 'text-red'
+                        b = ''
+                    else:
+                        dif_d_d=""
+                        c=''
+                        b=''
+                except:
+                    dif_d_d = "-"
+            
+                try:
+                    dif_reg = round(float(regular_prices) - float(regular_prices_01),2)
+                    if dif_reg > 0.30:
+                        row_i = 1
+                    elif dif_reg < -0.30:
+                        row_i = 1
+                    else:
+                        row_i = 0
+                except:
+                    dif_reg = "-"
+                    row_i = 0
+                try:
+                    dif_premium = round(float(premium_prices) - float(premium_prices_01),2)
+                    if dif_premium > 0.30:
+                        row_j = 1
+                    elif dif_premium < -0.30:
+                        row_j = 1
+                    else:
+                        row_j = 0
+                except:
+                    dif_premium = "-"
+                    row_j = 0
+                try:
+                    dif_diesel = round(float(diesel_prices) - float(diesel_prices_01),0)
+                    if dif_diesel > 0.30:
+                        row_k = 1
+                    elif dif_diesel < -0.30:
+                        row_k = 1
+                    else:
+                        row_k = 0
+                except:
+                    dif_diesel = "-"
+                    row_k = 0
+
+                # Determine the color and emoticon based on the difference value
+                row_n = row_i + row_k + row_j
+                if row_n >= 2:
+                    row_color = ""
+                    emoticon = "❌"  # Negative emoticon
+                elif 0 < row_n > 2:
+                    row_color = ""
+                    emoticon = "🧐"
+                else:
+                    row_color = ""
+                    emoticon = "✅"  # Positive emoticon
+
+                table += f"<tr class=\"table-secondary\"><td>{cre_id}</td><td>{marca}</td><td>{regular_prices_01}</td><td class=\"{c}\">{b}{dif_d_r}</td><td>{premium_prices_01}</td><td class=\"{c}\">{b}{dif_d_p}</td><td>{diesel_prices_01}</td><td class=\"{c}\">{b}{dif_d_d}</td><td></td></tr>"
+                table += f"<tr class=\"{row_color}\"><td></td><td>Diferencia</td><td>{dif_reg}</td><td></td><td>{dif_premium}</td><td></td><td>{dif_diesel}</td><td></td><td>{emoticon}</td></tr>"
+    table += "</tbody>"
+    table += "</table>"
+
+    return table
+
+def get_precios_competencia(fecha):
+    
+    given_date = fecha
+    coalesce_value = '-'
+    round_digits = 2    
+
+    result = db.session.query(
+        competencia.id_micromercado,
+        competencia.id_estacion,
+        competencia.cre_id,
+        competencia.place_id,
+        competencia.marca,
+        func.coalesce(
+            func.max(case((precios_site.product == 'regular', func.cast(precios_site.prices, db.Text))), else_="-"),
+            "-"
+        ).label('regular_prices'),
+        func.coalesce(
+            func.max(case((precios_site.product == 'premium', func.cast(precios_site.prices, db.Text))), else_="-"),
+            "-"
+        ).label('premium_prices'),
+        func.coalesce(
+            func.max(case((precios_site.product == 'diesel', func.cast(precios_site.prices, db.Text))), else_="-"),
+            "-"
+        ).label('diesel_prices')
+    ).outerjoin(
+        precios_site,
+        and_(
+            func.cast(competencia.place_id, db.Text) == precios_site.place_id,
+            precios_site.date == given_date
+        )
+    ).group_by(
+        competencia.id_micromercado,
+        competencia.id_estacion,
+        competencia.cre_id,
+        competencia.place_id,
+        competencia.marca
+    ).order_by(
+        competencia.id_micromercado,
+        competencia.id_estacion
+    ).all()
+
+    return result
