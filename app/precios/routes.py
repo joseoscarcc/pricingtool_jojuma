@@ -20,4 +20,4 @@ def index(target_cre_id=None):
 @bp.route('cambios/')
 @login_required
 def cambioprecio():
-    return 
+    return "en Construccion"
