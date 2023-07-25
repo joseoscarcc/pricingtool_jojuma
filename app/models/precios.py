@@ -92,6 +92,8 @@ def get_data_table(target_cre_id):
     row_i = 0
     row_k = 0
     row_j = 0
+    a=''
+    b=''
     c=''
     
     table = "<table id=\"table\" class=\"table table-striped table-sm table-responsive\" >"
