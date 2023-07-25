@@ -92,7 +92,8 @@ def get_data_table(target_cre_id):
     row_i = 0
     row_k = 0
     row_j = 0
-
+    c=''
+    
     table = "<table id=\"table\" class=\"table table-striped table-sm table-responsive\" >"
     table += "<thead class=\"thead-dark\">"
     table += "<tr><th>Permiso CRE</th><th>Marca</th><th>Regular</th><th>-d</th><th>Premium</th><th>-d</th><th>Diesel</th><th>-d</th><th>Cambio</th></tr></thead>"
