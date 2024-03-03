@@ -3,7 +3,7 @@ from app.maps import bp
 from app.extensions import db
 from config import Config
 from sqlalchemy import func, cast, Integer
-from app.models.precios import precios_site,competencia,get_unique_municipios,get_site_data_by_municipio
+from app.models.precios import competencia,get_unique_municipios,get_site_data_by_municipio,totalgas_prices
 from app.models.auth import login_required
 
 
@@ -43,19 +43,19 @@ def index(municipio_value=None, product_value=None):
     place_ids = get_site_data_by_municipio(municipio_value)
 
     latest_date = (
-        db.session.query(func.max(precios_site.date))
+        db.session.query(func.max(totalgas_prices.date))
         .scalar()
     )
 
     results = (
-        precios_site.query.join(competencia, cast(precios_site.place_id, Integer) == competencia.place_id)
+        totalgas_prices.query.join(competencia, totalgas_prices.place_id == competencia.place_id)
         .filter(competencia.compite_a.in_(place_ids))
-        .filter(precios_site.product == product_value)
-        .filter(precios_site.date == latest_date)
+        .filter(totalgas_prices.product == product_value)
+        .filter(totalgas_prices.date == latest_date)
         .with_entities(
             competencia.cre_id,
             competencia.marca,
-            precios_site.prices,
+            totalgas_prices.prices,
             competencia.x,
             competencia.y
         )
@@ -105,19 +105,19 @@ def data(municipio_value=None, product_value=None):
     place_ids = get_site_data_by_municipio(municipio_value)
 
     latest_date = (
-        db.session.query(func.max(precios_site.date))
+        db.session.query(func.max(totalgas_prices.date))
         .scalar()
     )
 
     results = (
-        precios_site.query.join(competencia, cast(precios_site.place_id, Integer) == competencia.place_id)
+        totalgas_prices.query.join(competencia, totalgas_prices.place_id == competencia.place_id)
         .filter(competencia.compite_a.in_(place_ids))
-        .filter(precios_site.product == product_value)
-        .filter(precios_site.date == latest_date)
+        .filter(totalgas_prices.product == product_value)
+        .filter(totalgas_prices.date == latest_date)
         .with_entities(
             competencia.cre_id,
             competencia.marca,
-            precios_site.prices,
+            totalgas_prices.prices,
             competencia.x,
             competencia.y
         )

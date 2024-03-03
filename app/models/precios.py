@@ -18,6 +18,15 @@ class competencia(db.Model):
     y = db.Column(db.Float)
     compite_a = db.Column(db.Integer)
 
+class totalgas_prices(db.Model):
+    place_id = db.Column(db.Integer, primary_key=True)
+    cre_id = db.Column(db.Text)
+    municipio = db.Column(db.Text)
+    estado = db.Column(db.Text)
+    prices = db.Column(db.Float)
+    product = db.Column(db.Text)
+    date = db.Column(db.Date)
+
 class sites(db.Model):
     place_id = db.Column(db.Integer, primary_key=True)
     cre_id = db.Column(db.Text)
@@ -105,9 +114,9 @@ def get_data_table(target_cre_id):
                 
                 cre_id = data.cre_id
                 marca = data.marca
-                regular_prices = data.regular_prices
-                premium_prices = data.premium_prices
-                diesel_prices = data.diesel_prices
+                regular_prices = data.regular_prices if data.regular_prices is not None else "-"
+                premium_prices = data.premium_prices if data.premium_prices is not None else "-"
+                diesel_prices = data.diesel_prices if data.diesel_prices is not None else "-"
 
                 desired_row = next((row for row in ayer if row.id_micromercado == data.id_micromercado and row.id_estacion == data.id_estacion and row.cre_id == data.cre_id and row.place_id == data.place_id), None)
 
@@ -163,9 +172,9 @@ def get_data_table(target_cre_id):
             else:
                 cre_id = data.cre_id
                 marca = data.marca
-                regular_prices_01 = data.regular_prices
-                premium_prices_01 = data.premium_prices
-                diesel_prices_01 = data.diesel_prices
+                regular_prices_01 = data.regular_prices if data.regular_prices is not None else "-"
+                premium_prices_01 = data.premium_prices if data.premium_prices is not None else "-"
+                diesel_prices_01 = data.diesel_prices if data.diesel_prices is not None else "-"
 
                 desired_row = next((row for row in ayer if row.id_micromercado == data.id_micromercado and row.id_estacion == data.id_estacion and row.cre_id == data.cre_id and row.place_id == data.place_id), None)
 
@@ -289,24 +298,25 @@ def get_competencia_by_place_id(target_cre_id, fecha):
         competencia.place_id,
         competencia.marca,
         func.coalesce(
-            func.max(case((precios_site.product == 'regular', func.cast(precios_site.prices, db.Text))), else_="-"),
-            "-"
+            func.max(case((totalgas_prices.product == 'regular', totalgas_prices.prices)), else_=None),
+            None
         ).label('regular_prices'),
         func.coalesce(
-            func.max(case((precios_site.product == 'premium', func.cast(precios_site.prices, db.Text))), else_="-"),
-            "-"
+            func.max(case((totalgas_prices.product == 'premium', totalgas_prices.prices)), else_=None),
+            None
         ).label('premium_prices'),
         func.coalesce(
-            func.max(case((precios_site.product == 'diesel', func.cast(precios_site.prices, db.Text))), else_="-"),
-            "-"
+            func.max(case((totalgas_prices.product == 'diesel', totalgas_prices.prices)), else_=None),
+            None
         ).label('diesel_prices')
     ).outerjoin(
-        precios_site,
+        totalgas_prices,
         and_(
-            func.cast(competencia.place_id, db.Text) == precios_site.place_id,
-            precios_site.date == given_date
+            competencia.place_id == totalgas_prices.place_id,
+            totalgas_prices.date == given_date
         )
     )
+
 
     # Check if place_id is not None and add the filter condition
     if place_id is not None:
