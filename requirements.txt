@@ -1,9 +1,9 @@
 gunicorn
 flask
-sqlalchemy
+sqlalchemy>=1.4.0
 pandas
 numpy
 plotly
 flask_sqlalchemy
-psycopg2
+psycopg2>=2.9.0
 flask_wtf
