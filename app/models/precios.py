@@ -279,12 +279,27 @@ def get_data_table(target_cre_id):
     return table
 
 def get_place_id_by_cre_id_01(target_cre_id):
-    site = competencia.query.filter(competencia.cre_id.like(f'PL/{target_cre_id}/%')).first()
+    try:
+        # Log the target_cre_id and query string
+        query_str = f'PL/{target_cre_id}/%'
+        print(f"Querying for cre_id like: {query_str}")
 
-    if site is None:
+        # Perform the query
+        site = competencia.query.filter(competencia.cre_id.like(query_str)).first()
+
+        if site is None:
+            print("No matching site found.")
+            return None
+
+        # Log the found site and its place_id
+        print(f"Found site: {site}, place_id: {site.place_id}")
+        return site.place_id
+
+    except Exception as e:
+        # Log any exceptions that occur
+        print(f"An error occurred: {e}")
         return None
 
-    return site.place_id
 
 def get_competencia_by_place_id(target_cre_id, fecha):
     place_id = get_place_id_by_cre_id_01(target_cre_id)
