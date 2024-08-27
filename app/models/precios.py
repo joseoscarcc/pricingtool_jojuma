@@ -91,9 +91,9 @@ def get_place_id_by_cre_id(target_cre_id):
     return site.place_id
 
 def get_data_table(target_cre_id):
-    latest_date = db.session.query(func.max(precios_site.date)).scalar()
+    latest_date = db.session.query(func.max(totalgas_prices.date)).scalar()
     hoy = get_competencia_by_place_id(target_cre_id, latest_date)
-    dia_anterior = db.session.query(func.max(precios_site.date) - 1).scalar()
+    dia_anterior = db.session.query(func.max(totalgas_prices.date) - 1).scalar()
     ayer = get_competencia_by_place_id(target_cre_id, dia_anterior)
     regular_prices = 1
     premium_prices = 1
